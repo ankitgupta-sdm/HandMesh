@@ -51,6 +51,8 @@ if __name__ == '__main__':
     else:
         template_fp = osp.join(args.work_dir, '../template/template.ply')
         transform_fp = osp.join(args.work_dir, '../template/transform.pkl')
+
+    print(template_fp)
     spiral_indices_list, down_transform_list, up_transform_list, tmp = spiral_tramsform(transform_fp, template_fp, args.ds_factors, args.seq_length, args.dilation)
 
     # model
@@ -63,6 +65,7 @@ if __name__ == '__main__':
     elif args.model == 'mobrecon':
         for i in range(len(up_transform_list)):
             up_transform_list[i] = (*up_transform_list[i]._indices(), up_transform_list[i]._values())
+        
         model = MobRecon(args, spiral_indices_list, up_transform_list)
     else:
         raise Exception('Model {} not support'.format(args.model))

@@ -274,6 +274,7 @@ class Runner(object):
                 K[0, 2] = args.size // 2
                 K[1, 2] = args.size // 2
 
+                print(input.shape)
                 out = self.model(input)
                 # silhouette
                 mask_pred = out.get('mask_pred')
@@ -293,6 +294,7 @@ class Runner(object):
                 pred = out['mesh_pred'][0] if isinstance(out['mesh_pred'], list) else out['mesh_pred']
                 vertex = (pred[0].cpu() * self.std.cpu()).numpy()
                 uv_pred = out['uv_pred']
+                print(uv_pred)
                 if uv_pred.ndim == 4:
                     uv_point_pred, uv_pred_conf = map2uv(uv_pred.cpu().numpy(), (input.size(2), input.size(3)))
                 else:
@@ -300,6 +302,7 @@ class Runner(object):
                 vertex, align_state = registration(vertex, uv_point_pred[0], self.j_regressor, K, args.size, uv_conf=uv_pred_conf[0], poly=poly)
 
                 vertex2xyz = mano_to_mpii(np.matmul(self.j_regressor, vertex))
+                print(input.size(3), input.size(2))
                 save_a_image_with_mesh_joints(image[..., ::-1], mask_pred, poly, K, vertex, self.faces[0], uv_point_pred[0], vertex2xyz,
                                               os.path.join(args.out_dir, 'demo', image_name + '_plot.jpg'))
                 save_mesh(os.path.join(args.out_dir, 'demo', image_name + '_mesh.ply'), vertex, self.faces[0])

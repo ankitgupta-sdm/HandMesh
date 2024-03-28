@@ -8,3 +8,11 @@ __pycache__/
 .idea/
 **/*.pkl
 **/out/*
+
+64_img.jpg
+*.mp4
+*.MP4
+*.avi
+output.png
+
+mesh
