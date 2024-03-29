@@ -21,20 +21,21 @@ j_regressor = np.zeros([21, 778])
 std = torch.tensor(0.20)
 
 work_dir = osp.dirname(osp.realpath(__file__))
-seq_length = [9, 9, 9, 9]
+seq_length = [27, 27, 27, 27]
 ds_factors = [2, 2, 2, 2]
 dilation = [1, 1, 1, 1]
 
 args = BaseOptions().parse()
-args.size = 128
-args.exp_name = 'mobrecon_spconv'
-args.backbone = 'DenseStack'
-args.resume = 'mobrecon_densestack.pt'
+args.phase = 'demo'
+args.size = 224
+args.exp_name = 'cmr_pg'
+args.backbone = 'ResNet18'
+args.resume = 'cmr_pg_res18_freihand.pt'
 args.dataset = 'FreiHAND'
-args.out_channels= [32, 64, 128, 256]
+args.out_channels= [64, 128, 256, 512]
 args.dsconv = False
-args.model = 'mobrecon'
-args.seq_length = [9, 9, 9, 9]
+args.model = 'cmr_pg'
+args.seq_length = seq_length
 
 args.out_dir = osp.join(work_dir, './cmr/out', args.dataset, args.exp_name)
 args.checkpoints_dir = osp.join(args.out_dir, 'checkpoints')
@@ -45,8 +46,10 @@ model = None
 
 faces = []
 
+print(args)
+
 # Function to preprocess a frame (this will depend on your model's requirements)
-def preprocess_frame(frame, size=(128, 128)):
+def preprocess_frame(frame, size=(224, 224)):
     resize_frame = cv2.resize(frame[..., ::-1], size)  # Resize frame
     cv2.imwrite('test.png', resize_frame)
     frame_tensor = torch.tensor(resize_frame).permute(2, 0, 1).float().unsqueeze(0)
@@ -66,7 +69,6 @@ def visualize_and_process(frame_tensor, out, frame):
         [0, 0, 1]
     ])
 
-    print(mask_pred)
     if mask_pred is not None:
         mask_pred = (mask_pred[0] > 0.3).cpu().numpy().astype(np.uint8)
 
@@ -83,9 +85,8 @@ def visualize_and_process(frame_tensor, out, frame):
     pred = out['mesh_pred'][0] if isinstance(out['mesh_pred'], list) else out['mesh_pred']
     vertex = (pred[0].cpu() * std.cpu()).numpy()
     uv_pred = out['uv_pred']
-    print(uv_pred)
     if uv_pred.ndim == 4:
-        uv_point_pred, uv_pred_conf = map2uv(uv_pred.cpu().numpy(), (input.size(2), input.size(3)))
+        uv_point_pred, uv_pred_conf = map2uv(uv_pred.cpu().numpy(), (frame_tensor.size(2), frame_tensor.size(3)))
     else:
         uv_point_pred, uv_pred_conf = (uv_pred * args.size).cpu().numpy(), [None,]
     vertex, align_state = registration(vertex, uv_point_pred[0], j_regressor, K, args.size, uv_conf=uv_pred_conf[0], poly=poly)
@@ -115,10 +116,10 @@ def load_model():
     spiral_indices_list, down_transform_list, up_transform_list, tmp = spiral_tramsform(transform_fp, template_fp, ds_factors, seq_length, dilation)
 
     faces = tmp['face']
-    for i in range(len(up_transform_list)):
-        up_transform_list[i] = (*up_transform_list[i]._indices(), up_transform_list[i]._values())
+    # for i in range(len(up_transform_list)):
+    #     up_transform_list[i] = (*up_transform_list[i]._indices(), up_transform_list[i]._values())
 
-    model = MobRecon(args, spiral_indices_list, up_transform_list)
+    model = CMR_PG(args, spiral_indices_list, up_transform_list)
     # Loading checkpoints
     epoch = 0
     if args.resume:
@@ -157,7 +158,7 @@ def main():
     # Processing video
     while True:
         ret, frame = cap.read()
-        # frame = cv2.imread('64_img.jpg')
+        frame = cv2.imread('64_img.jpg')
         if not ret:
             break  # Break the loop if there are no frames to read
 
@@ -179,7 +180,7 @@ def main():
         # Display the frame (optional)
         out.write(vis_frame)
         cv2.imwrite('output.png', vis_frame)
-        # break
+        break
 
     # Release the video capture object and close all OpenCV windows
     cap.release()

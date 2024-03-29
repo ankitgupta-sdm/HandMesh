@@ -66,7 +66,6 @@ def visualize_and_process(frame_tensor, out, frame):
         [0, 0, 1]
     ])
 
-    print(mask_pred)
     if mask_pred is not None:
         mask_pred = (mask_pred[0] > 0.3).cpu().numpy().astype(np.uint8)
 
@@ -83,9 +82,8 @@ def visualize_and_process(frame_tensor, out, frame):
     pred = out['mesh_pred'][0] if isinstance(out['mesh_pred'], list) else out['mesh_pred']
     vertex = (pred[0].cpu() * std.cpu()).numpy()
     uv_pred = out['uv_pred']
-    print(uv_pred)
     if uv_pred.ndim == 4:
-        uv_point_pred, uv_pred_conf = map2uv(uv_pred.cpu().numpy(), (input.size(2), input.size(3)))
+        uv_point_pred, uv_pred_conf = map2uv(uv_pred.cpu().numpy(), (frame_tensor.size(2), frame_tensor.size(3)))
     else:
         uv_point_pred, uv_pred_conf = (uv_pred * args.size).cpu().numpy(), [None,]
     vertex, align_state = registration(vertex, uv_point_pred[0], j_regressor, K, args.size, uv_conf=uv_pred_conf[0], poly=poly)

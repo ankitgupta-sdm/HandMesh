@@ -294,7 +294,6 @@ class Runner(object):
                 pred = out['mesh_pred'][0] if isinstance(out['mesh_pred'], list) else out['mesh_pred']
                 vertex = (pred[0].cpu() * self.std.cpu()).numpy()
                 uv_pred = out['uv_pred']
-                print(uv_pred)
                 if uv_pred.ndim == 4:
                     uv_point_pred, uv_pred_conf = map2uv(uv_pred.cpu().numpy(), (input.size(2), input.size(3)))
                 else:
