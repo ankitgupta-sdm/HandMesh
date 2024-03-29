@@ -302,7 +302,7 @@ class Runner(object):
                 vertex, align_state = registration(vertex, uv_point_pred[0], self.j_regressor, K, args.size, uv_conf=uv_pred_conf[0], poly=poly)
 
                 vertex2xyz = mano_to_mpii(np.matmul(self.j_regressor, vertex))
-                print(input.size(3), input.size(2))
+                print("Image - " + image_name)
                 save_a_image_with_mesh_joints(image[..., ::-1], mask_pred, poly, K, vertex, self.faces[0], uv_point_pred[0], vertex2xyz,
                                               os.path.join(args.out_dir, 'demo', image_name + '_plot.jpg'))
                 save_mesh(os.path.join(args.out_dir, 'demo', image_name + '_mesh.ply'), vertex, self.faces[0])

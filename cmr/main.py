@@ -53,6 +53,7 @@ if __name__ == '__main__':
         transform_fp = osp.join(args.work_dir, '../template/transform.pkl')
 
     print(template_fp)
+    print(args.ds_factors, args.seq_length, args.dilation, args.dsconv)
     spiral_indices_list, down_transform_list, up_transform_list, tmp = spiral_tramsform(transform_fp, template_fp, args.ds_factors, args.seq_length, args.dilation)
 
     # model
